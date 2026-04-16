@@ -29,7 +29,7 @@ service Reply {
     // 评论表情推荐列表接口
     rpc SuggestEmotes(SuggestEmotesReq) returns (SuggestEmotesResp);
     // 翻译评论接口
-    rpc TranslateReply(TranslateReplyReq) returns (ReplyInfoReply);
+    rpc TranslateReply(TranslateReplyReq) returns (TranslateReplyResp);
 }
 
 // 活动
@@ -857,8 +857,12 @@ message ReplyInfo {
     ReplyControl reply_control = 14;
     // 发布者信息V2
     MemberV2 member_v2 = 15;
+    // 跟踪信息
+    string track_info = 16;
     // 翻译结果(仅在翻译请求中返回)
-    Content translated_text = 17;
+    Content translated_content = 17;
+    // 被回复人信息
+    ParentReplyMember parent_reply_member = 18;
 }
 
 // 查询单条评论-响应
@@ -1247,9 +1251,98 @@ message Vote {
 // 翻译评论请求
 message TranslateReplyReq {
     // 业务type
-    int32 type = 1;
+    int64 type = 1;
     // 稿件id
     int64 oid = 2;
-    // 评论id
-    int64 rpid = 3;
+    // 评论id列表
+    repeated int64 rpids = 3;
+}
+
+// 翻译评论响应
+message TranslateReplyResp {
+    // 翻译结果映射 key=rpid value=翻译后的评论信息
+    map<int64, ReplyInfo> translated_replies = 1;
+}
+
+// 被回复人信息
+message ParentReplyMember {
+    // 用户mid
+    int64 mid = 1;
+    // 用户名
+    string name = 2;
+}
+
+// 评论投票选项
+message ReplyControlVoteOption {
+    // 标签颜色风格
+    ReplyControlVoteOptionLabelKind label_kind = 1;
+    // 选项描述文案
+    string desc = 2;
+    // 选项序号
+    int64 idx = 3;
+    // 投票 ID
+    int64 vote_id = 4;
+}
+
+enum ReplyControlVoteOptionLabelKind {
+    DEFAULT_LabelKind = 0;
+    RED = 1;
+    BLUE = 2;
+    PLAIN = 3;
+}
+
+// 评论等级/评分记录
+message ReplyControlGradeRecord {
+    // 评分分数
+    int32 score = 1;
+    // 评分文案列表
+    repeated ReplyControlGradeRecordText texts = 2;
+}
+
+message ReplyControlGradeRecordText {
+    // 原始文本
+    string raw = 1;
+    // 文本样式
+    TextStyle style = 2;
+}
+
+// 文本样式
+message TextStyle {
+    // 字号
+    int32 font_size = 1;
+    // 字体样式
+    TextStyleFontStyle font_style = 2;
+    // 日间颜色
+    string text_day_color = 3;
+    // 夜间颜色
+    string text_night_color = 4;
+}
+
+enum TextStyleFontStyle {
+    NORMAL = 0;
+    BOLD = 1;
+}
+
+// 彩蛋标签
+message ReplyControlEasterEggLabel {
+    // 彩蛋图片 URL
+    string image = 1;
+    // 点击跳转链接
+    string jump_url = 2;
+}
+
+// 插入动效配置
+message ReplyControlInsertEffect {
+    // 动效文案/描述
+    string content = 1;
+    // 动效图标 URL
+    string icon = 2;
+}
+
+// 翻译开关
+enum TranslationSwitch {
+    TRANSLATION_SWITCH_UNSPECIFIED = 0;
+    TRANSLATION_SWITCH_UNSUPPORTED = 1;
+    TRANSLATION_SWITCH_SHOW_TRANSLATION = 2;
+    TRANSLATION_SWITCH_SHOW_ORIGIN = 3;
 }
